@@ -20,24 +20,25 @@ class FirstSet:
             self.first[tk] = [tk]
         while True:
             haveNew = 0
-            for left, right in production:
-                if len(right) == 0 or (len(right) == 1 and right[0] == ''):
-                    self.isEpsilon.add(left)
+            for p in production:
+                if len(p.right) == 0 or (len(p.right) == 1 and p.right[0] == ''):
+                    self.isEpsilon.add(p.left)
                 else:
                     isBreak = False
-                    for it in right:
+                    for it in p.right:
                         if self.isTerminal(it):
-                            haveNew += self.addFirst(left, it)
+                            haveNew += self.addFirst(p.left, it)
                             isBreak = True
                             break
                         else:
-                            for symbol in self.first[it]:
-                                haveNew += self.addFirst(left, symbol)
-                            if it in self.isEpsilon:
+                            if it in self.first:
+                                for symbol in self.first[it]:
+                                    haveNew += self.addFirst(p.left, symbol)
+                            if it not in self.isEpsilon:
                                 isBreak = True
                                 break
-                    if isBreak:
-                        self.isEpsilon.add(left)
+                    if not isBreak:
+                        self.isEpsilon.add(p.left)
             if haveNew == 0:
                 break
         for symbol in self.isEpsilon:
@@ -83,7 +84,7 @@ class FirstSet:
                 for symbol in self.first[it]:
                     if symbol != Epsilon:
                         res.add(symbol)
-                if it in self.isEpsilon:
+                if it not in self.isEpsilon:
                     isBreak = True
                     break
         if not isBreak:
