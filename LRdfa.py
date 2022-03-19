@@ -99,9 +99,9 @@ class LRDFA:
                                 q.append(item)
             r = [*ans]
             closureCache[I] = r
-            return r
+            return tuple(r)
 
-        def move(I: list[Item], w: str):
+        def move(I: tuple[Item], w: str):
             ans: list[Item] = []
             for item in I:
                 if item.pos < len(item.production.right) and item.production.right[item.pos] == w:
@@ -114,7 +114,7 @@ class LRDFA:
         st = getItem(Item(self.productions[0], 0, Dollar))
         C = [closure([st])]
         q = [C[0]]
-        mp: dict[Item, int] = {C[0]: 0}
+        mp: dict[tuple[Item], int] = {C[0]: 0}
         while len(q) > 0:
             cur = q.pop(0)
             for ch in allT:
