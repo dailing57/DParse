@@ -105,3 +105,52 @@ class LRDFA:
                     ans.append(
                         getItem(Item(item.production, item.pos+1, item.lookup)))
             return closure(ans)
+
+        allT = set(*self.tokens, *self.types)
+        allT.remove(Dollar)
+        st = getItem(Item(self.productions[0], 0, Dollar))
+        C = [closure([st])]
+        q = [C[0]]
+        mp: dict[Item, int] = {C[0]: 0}
+        while len(q) > 0:
+            cur = q.pop(0)
+            for ch in allT:
+                v = move(cur, ch)
+                if len(v) == 0:
+                    continue
+                if v not in mp:
+                    mp[v] = len(C)
+                    C.append(v)
+                    q.append(v)
+
+        self.items = C
+        Action = [{} for it in C]
+        Goto = [{} for it in C]
+        for i in range(len(C)):
+            I = C[i]
+            for item in I:
+                assert(self.isTerminal(item.lookup))
+                if item.pos == len(item.production.right):
+                    act = 'Accepted' if item.production == self.productions[
+                        0] and item.pos == 1 and item.lookup == Dollar else item.production
+                    if item.lookup in Action[i] and Action[i][item.lookup] != act:
+                        if type(Action[i][item.lookup]) == int:
+                            self.reportError('shift-reduce conflict')
+                        else:
+                            self.reportError('reduce-reduce conflict')
+                    Action[i][item.lookup] = act
+                else:
+                    ch = item.production.right[item.pos]
+                    v = move(I, ch)
+                    if len(v) > 0:
+                        j = mp[v]
+                        if self.isTerminal(ch):
+                            if ch in Action[i] and Action[i][ch] != j:
+                                self.reportError('shift-reduce conflict')
+                            Action[i][ch] = j
+                        else:
+                            if ch in Goto[i] and Goto[i][ch] != j:
+                                self.reportError('construct Goto failed')
+                            Goto[i][ch] = j
+        self.Action = Action
+        self.Goto = Goto
