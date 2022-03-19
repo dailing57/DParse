@@ -1,12 +1,7 @@
-from type import Epsilon, Production
+from type import Epsilon, Error
 
 
-class Error(Exception):
-    def __init__(self, message=None):
-        self.message = f'{self.__class__.__name__}: {message}'
-
-
-class automatonError(Error):
+class firstError(Error):
     pass
 
 
@@ -59,8 +54,8 @@ class FirstSet:
                 return 1
 
     def reportError(slef, msg):
-        raise automatonError(
-            'DParse Build LR automaton failed, {}'.format(msg))
+        raise firstError(
+            'DParse Build firstSet failed, {}'.format(msg))
 
     def isTerminal(self, name):
         if name in self.tokens or name == Epsilon:

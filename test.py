@@ -1,26 +1,17 @@
-import first
-from type import Production
 
-firstset = first.FirstSet(
-    set({'a', 'b', 'c'}),
-    set({'S', 'A', 'B', 'C', 'D'}),
-    [
-        Production(left='S', right=['A', 'B']),
-        Production(left='S', right=['b', 'C']),
-        Production(left='A', right=['']),
-        Production(left='A', right=['b']),
-        Production(left='B', right=[]),
-        Production(left='B', right=['a', 'D']),
-        Production(left='C', right=['A', 'D']),
-        Production(left='C', right=['b']),
-        Production(left='D', right=['a', 'S']),
-        Production(left='D', right=['c']),
-    ])
+import json
 
-print(firstset.query('S'))
-print(firstset.query('A'))
-print(firstset.query('B'))
-print(firstset.query('C'))
-print(firstset.query('D'))
-print(firstset.isEpsilon)
-print(firstset.query('A', 'S'))
+
+class Production:
+    def __init__(self, left: str, right: list, reduce=None) -> None:
+        self.left: str = left
+        self.right: list = right
+        self.reduce = reduce
+        self.st = set()
+
+
+p = Production(left='s', right=[1], reduce=(lambda val: val))
+mp: dict[Production, list[Production]] = {}
+mp[p] = [p]
+if p in mp:
+    print(p)
