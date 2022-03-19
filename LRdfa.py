@@ -104,3 +104,4 @@ class LRDFA:
                 if item.pos < len(item.production.right) and item.production.right[item.pos] == w:
                     ans.append(
                         getItem(Item(item.production, item.pos+1, item.lookup)))
+            return closure(ans)
