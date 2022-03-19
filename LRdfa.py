@@ -8,9 +8,12 @@ class dfaError(Error):
 
 
 def groupBy(productions: list[Production]):
-    mp = {}
+    mp: dict[str, list[Production]] = {}
     for it in productions:
-        mp[it.left] = [it]
+        if it.left not in mp:
+            mp[it.left] = [it]
+        else:
+            mp[it.left].append(it)
     return mp
 
 
@@ -55,12 +58,12 @@ class LRDFA:
             if left is None or right is None:
                 self.reportError('Config miss left or right {}'.format(
                     json.dumps(it, default=lambda o: o.__dict__, indent=4)))
+            assert(self.isTerminal(left) == False)
             for r in right:
-                assert(self.isTerminal(left) == False)
                 for symbol in r.rule:
                     self.isTerminal(symbol)
                 self.productions.append(Production(
-                    left=left, right=r.reduce, reduce=r.reduce))
+                    left=left, right=r.rule, reduce=r.reduce))
 
         firstSet = FirstSet(self.tokens, self.types, self.productions)
         group = groupBy(self.productions)

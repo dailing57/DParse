@@ -11,8 +11,8 @@ class Production:
 
 
 class ProductionRightRule:
-    def __init__(self, rule: str, reduce=None) -> None:
-        self.rule: str = rule
+    def __init__(self, rule: list[str], reduce=None) -> None:
+        self.rule: list[str] = rule
         self.reduce = reduce
 
 
