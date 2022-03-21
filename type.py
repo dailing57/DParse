@@ -4,10 +4,19 @@ START = '__START__'
 
 
 class Production:
-    def __init__(self, left: str, right: list, reduce=None) -> None:
+    def __init__(self, left: str, right: tuple, reduce=None) -> None:
         self.left: str = left
-        self.right: list = right
+        self.right: tuple = right
         self.reduce = reduce
+
+    def __hash__(self) -> int:
+        return hash((self.left, self.right))
+
+    def __eq__(self, __o: object) -> bool:
+        return (self.left, self.right) == (__o.left, __o.right)
+
+    def __ne__(self, __o: object) -> bool:
+        return not(self == __o)
 
 
 class ProductionRightRule:

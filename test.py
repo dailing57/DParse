@@ -1,2 +1,5 @@
-a = 1
-print(type(a) == object)
+from LRdfa import Item
+
+a = (1, 2, 3, 4)
+a = tuple(a)
+print(tuple(a))

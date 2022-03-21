@@ -22,7 +22,7 @@ class LRParser:
                     stk.append(act)
                     val.append(curCh)
                     curCh = next(tokens)
-                elif type(act) == object:
+                elif type(act) == Production:
                     arg = []
                     for i in range(len(act.right)):
                         stk.pop()
@@ -30,12 +30,13 @@ class LRParser:
                     state = self.goto[stk[-1]][act.left]
                     stk.append(state)
                     arg.reverse()
-                    val.append(act.reduce(*args)
+                    val.append(act.reduce(*arg)
                                if act.reduce is not None else None)
                 elif act == 'Accepted':
                     break
             else:
-                return
+                return False, curCh
+        return True, val[1]
 
     def parse(self, tokens: Generator or list[Token], *args: list):
         def gen():

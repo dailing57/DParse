@@ -23,11 +23,17 @@ class Item:
         self.pos: int = pos
         self.lookup: str = lookup
 
+    def __hash__(self) -> int:
+        return hash((self.production, self.pos, self.lookup))
+
     def __eq__(self, __o: object) -> bool:
         return self.__dict__ == __o.__dict__
 
     def __str__(self) -> str:
-        return ' '.join([str(x) for x in [*self.production.right[:self.pos], '.', *self.production.right[self.pos:]]])
+        s = ' '.join([str(x) for x in [
+                     *self.production.right[:self.pos], '.', *self.production.right[self.pos:]]])
+        s = s + ' lookup=' + self.lookup + '\n'
+        return s
 
     def __repr__(self) -> str:
         return self.__str__()
@@ -51,7 +57,7 @@ class LRDFA:
 
         assert(self.isTerminal(config.start) == False)
         self.productions = [Production(
-            left=START, right=[config.start], reduce=(lambda val: val))]
+            left=START, right=tuple([config.start]), reduce=(lambda val: val))]
         for it in config.productions:
             left = it.left
             right = it.right
@@ -63,7 +69,7 @@ class LRDFA:
                 for symbol in r.rule:
                     self.isTerminal(symbol)
                 self.productions.append(Production(
-                    left=left, right=r.rule, reduce=r.reduce))
+                    left=left, right=tuple(r.rule), reduce=r.reduce))
 
         firstSet = FirstSet(self.tokens, self.types, self.productions)
         group = groupBy(self.productions)
@@ -76,11 +82,11 @@ class LRDFA:
             itemCache.append(x)
             return x
 
-        closureCache: dict[Item, list[Item]] = {}
+        closureCache: dict[tuple[Item], list[Item]] = {}
 
-        def closure(I: list[Item]):
+        def closure(I: tuple[Item]):
             if I in closureCache:
-                return closureCache[I]
+                return tuple(closureCache[I])
             ans = set(I)
             q = [*I]
             while len(q) > 0:
@@ -107,12 +113,12 @@ class LRDFA:
                 if item.pos < len(item.production.right) and item.production.right[item.pos] == w:
                     ans.append(
                         getItem(Item(item.production, item.pos+1, item.lookup)))
-            return closure(ans)
+            return closure(tuple(ans))
 
-        allT = set(*self.tokens, *self.types)
+        allT = set({*self.tokens, *self.types})
         allT.remove(Dollar)
         st = getItem(Item(self.productions[0], 0, Dollar))
-        C = [closure([st])]
+        C = [closure(tuple([st]))]
         q = [C[0]]
         mp: dict[tuple[Item], int] = {C[0]: 0}
         while len(q) > 0:
