@@ -1,4 +1,4 @@
-from type import Epsilon, Error
+from .type import Epsilon, Error
 
 
 class firstError(Error):

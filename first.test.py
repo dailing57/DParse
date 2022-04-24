@@ -1,5 +1,5 @@
-import first
-from type import Production
+from . import first
+from .type import Production
 
 firstset = first.FirstSet(
     set({'a', 'b', 'c'}),

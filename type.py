@@ -12,8 +12,8 @@ class Production:
     def __hash__(self) -> int:
         return hash((self.left, self.right))
 
-    def __eq__(self, __o: object) -> bool:
-        return (self.left, self.right) == (__o.left, __o.right)
+    # def __eq__(self, __o: object) -> bool:
+    #     return (self.left, self.right) == (__o.left, __o.right)
 
     def __ne__(self, __o: object) -> bool:
         return not(self == __o)
@@ -31,8 +31,15 @@ class ProductionRule:
         self.right: list[ProductionRightRule] = right
 
 
+class ParserHooks:
+    def __init__(self, beforeCreated=None, created=None) -> None:
+        self.beforeCreated = beforeCreated
+        self.created = created
+
+
 class ParserConfig:
-    def __init__(self, start: str, tokens: list[str], types: list[str], productions: list[ProductionRule]) -> None:
+    def __init__(self, start: str, tokens: list[str], types: list[str], productions: list[ProductionRule], hooks=None) -> None:
+        self.hooks: ParserHooks = hooks
         self.start: str = start
         self.tokens: list[str] = tokens
         self.types: list[str] = types

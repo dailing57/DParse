@@ -1,6 +1,5 @@
-from pyparsing import col
-from type import *
-from LRParser import LRParser
+from .type import *
+from .LRParser import LRParser
 from DLex.lexer import Token
 config = ParserConfig(
     start='S',

@@ -1,6 +1,6 @@
 import json
-from first import FirstSet
-from type import ParserConfig, Production, START, Epsilon, Dollar, Error
+from .first import FirstSet
+from .type import ParserConfig, Production, START, Epsilon, Dollar, Error
 
 
 class dfaError(Error):
@@ -27,7 +27,7 @@ class Item:
         return hash((self.production, self.pos, self.lookup))
 
     def __eq__(self, __o: object) -> bool:
-        return self.__dict__ == __o.__dict__
+        return self.production == __o.production and self.pos == __o.pos and self.lookup == __o.lookup
 
     def __str__(self) -> str:
         s = ' '.join([str(x) for x in [
@@ -40,7 +40,7 @@ class Item:
 
 
 class LRDFA:
-    def reportError(msg: str):
+    def reportError(self, msg: str):
         raise dfaError('DParse Build LRdfa failed, {}'.format(msg))
 
     def isTerminal(self, name):
@@ -73,20 +73,12 @@ class LRDFA:
 
         firstSet = FirstSet(self.tokens, self.types, self.productions)
         group = groupBy(self.productions)
-        itemCache: list[Item] = []
 
-        def getItem(x: Item):
-            for y in itemCache:
-                if x == y:
-                    return y
-            itemCache.append(x)
-            return x
+        closureCache: dict[frozenset[Item], list[Item]] = {}
 
-        closureCache: dict[tuple[Item], list[Item]] = {}
-
-        def closure(I: tuple[Item]):
+        def closure(I: frozenset[Item]):
             if I in closureCache:
-                return tuple(closureCache[I])
+                return closureCache[I]
             ans = set(I)
             q = [*I]
             while len(q) > 0:
@@ -99,26 +91,25 @@ class LRDFA:
                 if B in group:
                     for prod in group[B]:
                         for b in firstBeta:
-                            item = getItem(Item(prod, 0, b))
+                            item = Item(prod, 0, b)
                             if item not in ans:
                                 ans.add(item)
                                 q.append(item)
-            r = [*ans]
+            r = frozenset(ans)
             closureCache[I] = r
-            return tuple(r)
+            return r
 
-        def move(I: tuple[Item], w: str):
-            ans: list[Item] = []
+        def move(I: frozenset[Item], w: str):
+            ans: set[Item] = set()
             for item in I:
                 if item.pos < len(item.production.right) and item.production.right[item.pos] == w:
-                    ans.append(
-                        getItem(Item(item.production, item.pos+1, item.lookup)))
-            return closure(tuple(ans))
+                    ans.add(Item(item.production, item.pos+1, item.lookup))
+            return closure(frozenset(ans))
 
         allT = set({*self.tokens, *self.types})
         allT.remove(Dollar)
-        st = getItem(Item(self.productions[0], 0, Dollar))
-        C = [closure(tuple([st]))]
+        st = Item(self.productions[0], 0, Dollar)
+        C = [closure(frozenset([st]))]
         q = [C[0]]
         mp: dict[tuple[Item], int] = {C[0]: 0}
         while len(q) > 0:
@@ -131,7 +122,6 @@ class LRDFA:
                     mp[v] = len(C)
                     C.append(v)
                     q.append(v)
-
         self.items = C
         Action = [{} for it in C]
         Goto = [{} for it in C]
@@ -146,6 +136,8 @@ class LRDFA:
                         if type(Action[i][item.lookup]) == int:
                             self.reportError('shift-reduce conflict')
                         else:
+                            print(item.production.left)
+                            print(item.production.right)
                             self.reportError('reduce-reduce conflict')
                     Action[i][item.lookup] = act
                 else:
